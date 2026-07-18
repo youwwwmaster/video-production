@@ -70,8 +70,8 @@
     elements.ideaHero.innerHTML = `
       <div class="idea-copy"><span class="idea-index">СЦЕНАРИЙ ${idea.id} / 12</span><h2>${idea.title}</h2><p>${idea.scene}</p><div class="original-combination">Текущая комбинация: ${car.name} × ${location.name} × ${video.name}</div></div>
       <div class="idea-covers">
-        <button class="cover-card" data-open-library="cars"><img src="${carImage(car, 1)}" alt="${car.name}" /><span><small>Выбранный автомобиль</small>${car.name}</span></button>
-        <button class="cover-card" data-open-library="locations"><img src="${locationImage(location, 1)}" alt="${location.name}" /><span><small>Выбранная локация</small>${location.name}</span></button>
+        <div class="cover-card"><img src="${carImage(car, 1)}" alt="${car.name}" /><span><small>Выбранный автомобиль</small>${car.name}</span></div>
+        <div class="cover-card"><img src="${locationImage(location, 1)}" alt="${location.name}" /><span><small>Выбранная локация</small>${location.name}</span></div>
       </div>`;
     elements.sceneGrid.innerHTML = [
       ['00', 'Полное описание ролика', idea.full, 'scene-card--full'],
@@ -242,7 +242,7 @@ ${idea.camera}
   elements.videoStrip.addEventListener('click', (e) => { const button = e.target.closest('[data-video]'); if (button) { state.video = Number(button.dataset.video); renderAll(); } });
   elements.videoWorkbench.addEventListener('click', (e) => { const button = e.target.closest('[data-copy-video-description]'); if (button) copyText(DATA.videos[state.video].description, 'Описание видеореференса скопировано'); });
   $('#reset-combination').addEventListener('click', () => selectIdea(state.idea, true));
-  document.addEventListener('click', (e) => { const trigger = e.target.closest('[data-library], [data-open-library]'); if (trigger) openLibrary(trigger.dataset.library || trigger.dataset.openLibrary); });
+  document.addEventListener('click', (e) => { const trigger = e.target.closest('[data-library]'); if (trigger) openLibrary(trigger.dataset.library); });
   elements.libraryGrid.addEventListener('click', (e) => { if (e.target.closest('[data-library-download]')) return; const card = e.target.closest('[data-library-index]'); if (!card) return; const index = Number(card.dataset.libraryIndex); if (card.dataset.libraryType === 'cars') state.car = index; if (card.dataset.libraryType === 'locations') { state.location = index; state.idea = index; } if (card.dataset.libraryType === 'videos') state.video = index; elements.library.close(); renderAll(); });
   elements.sceneGrid.addEventListener('click', (e) => { const button = e.target.closest('.scene-copy-button'); if (!button) return; const text = button.closest('.scene-card').querySelector('p').textContent; copyText(text, 'Текст блока скопирован'); });
   $('#library-close').addEventListener('click', () => elements.library.close());
