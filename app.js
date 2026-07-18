@@ -116,7 +116,16 @@
     const video = DATA.videos[state.video];
     elements.videoWorkbench.innerHTML = `
       <div class="video-frame"><video controls muted playsinline preload="metadata" src="${videoPath(video)}"></video></div>
-      <div class="video-description"><span class="video-index">ВИДЕОРЕФЕРЕНС ${video.id} / 07</span><h3>${video.name}</h3><p>${video.description}</p><div class="tag-row">${video.tags.map(tag => `<span>${tag}</span>`).join('')}</div><a href="${videoPath(video)}" download>Скачать этот видеореференс · MP4</a></div>`;
+      <div class="video-description">
+        <span class="video-index">ВИДЕОРЕФЕРЕНС ${video.id} / 07</span>
+        <h3>${video.name}</h3>
+        <div class="video-description-text">${video.description}</div>
+        <div class="tag-row">${video.tags.map(tag => `<span>${tag}</span>`).join('')}</div>
+        <div class="video-description-actions">
+          <button type="button" class="video-copy-button" data-copy-video-description>Скопировать описание</button>
+          <a href="${videoPath(video)}" download>Скачать видеореференс · MP4</a>
+        </div>
+      </div>`;
     elements.videoStrip.innerHTML = DATA.videos.map((item, index) => `<button class="video-chip ${index === state.video ? 'is-active' : ''}" data-video="${index}"><span>${item.id}</span><strong>${item.name}</strong><small>${item.meta}</small></button>`).join('');
     setDownload('#dock-video-download', videoPath(video), `Скачать ${video.name} · MP4`);
   }
@@ -231,6 +240,7 @@ ${idea.camera}
   elements.locationSelect.addEventListener('change', (e) => { state.location = Number(e.target.value); state.idea = state.location; renderAll(); });
   elements.videoSelect.addEventListener('change', (e) => { state.video = Number(e.target.value); renderAll(); });
   elements.videoStrip.addEventListener('click', (e) => { const button = e.target.closest('[data-video]'); if (button) { state.video = Number(button.dataset.video); renderAll(); } });
+  elements.videoWorkbench.addEventListener('click', (e) => { const button = e.target.closest('[data-copy-video-description]'); if (button) copyText(DATA.videos[state.video].description, 'Описание видеореференса скопировано'); });
   $('#reset-combination').addEventListener('click', () => selectIdea(state.idea, true));
   document.addEventListener('click', (e) => { const trigger = e.target.closest('[data-library], [data-open-library]'); if (trigger) openLibrary(trigger.dataset.library || trigger.dataset.openLibrary); });
   elements.libraryGrid.addEventListener('click', (e) => { if (e.target.closest('[data-library-download]')) return; const card = e.target.closest('[data-library-index]'); if (!card) return; const index = Number(card.dataset.libraryIndex); if (card.dataset.libraryType === 'cars') state.car = index; if (card.dataset.libraryType === 'locations') { state.location = index; state.idea = index; } if (card.dataset.libraryType === 'videos') state.video = index; elements.library.close(); renderAll(); });
