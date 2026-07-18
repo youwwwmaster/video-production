@@ -39,6 +39,22 @@
     select.innerHTML = items.map((item, index) => `<option value="${index}">${item.id} — ${item.name}</option>`).join('');
   }
 
+  function personalizeScene(text, carName) {
+    if (text.startsWith('Современный автомобиль')) return text.replace('Современный автомобиль', carName);
+    if (text.startsWith('Автомобиль')) return text.replace('Автомобиль', carName);
+    return `${carName}: ${text.charAt(0).toLowerCase()}${text.slice(1)}`;
+  }
+
+  function buildScenario() {
+    const base = DATA.ideas[state.location] || DATA.ideas[state.idea];
+    const car = DATA.cars[state.car];
+    const location = DATA.locations[state.location];
+    const video = DATA.videos[state.video];
+    const scene = personalizeScene(base.scene, car.name);
+    const full = `Восьмисекундный премиальный автомобильный ролик показывает ${car.name} в локации «${location.name}». ${scene} Ролик начинается следующим кадром: ${base.start} Затем камера отрабатывает движение: ${base.camera} Финал ролика: ${base.end} В конструкторе к этой сцене приложен видеореференс ${video.name}. ${video.description}`;
+    return { ...base, title: `${base.title} — ${car.name}`, scene, full };
+  }
+
   function renderDraftList() {
     elements.draftList.innerHTML = DATA.ideas.map((idea, index) => `
       <button class="draft-item ${index === state.idea ? 'is-active' : ''}" data-idea="${index}">
@@ -47,18 +63,23 @@
   }
 
   function renderIdea() {
-    const idea = DATA.ideas[state.idea];
+    const idea = buildScenario();
     const car = DATA.cars[state.car];
     const location = DATA.locations[state.location];
+    const video = DATA.videos[state.video];
     elements.ideaHero.innerHTML = `
-      <div class="idea-copy"><span class="idea-index">ИДЕЯ ${idea.id} / 12</span><h2>${idea.title}</h2><p>${idea.scene}</p><div class="original-combination">Исходное сочетание: ${idea.original}</div></div>
+      <div class="idea-copy"><span class="idea-index">СЦЕНАРИЙ ${idea.id} / 12</span><h2>${idea.title}</h2><p>${idea.scene}</p><div class="original-combination">Текущая комбинация: ${car.name} × ${location.name} × ${video.name}</div></div>
       <div class="idea-covers">
         <button class="cover-card" data-open-library="cars"><img src="${carImage(car, 1)}" alt="${car.name}" /><span><small>Выбранный автомобиль</small>${car.name}</span></button>
         <button class="cover-card" data-open-library="locations"><img src="${locationImage(location, 1)}" alt="${location.name}" /><span><small>Выбранная локация</small>${location.name}</span></button>
       </div>`;
     elements.sceneGrid.innerHTML = [
-      ['01', 'Первый кадр (START)', idea.start], ['02', 'Последний кадр (END)', idea.end], ['03', 'Движение камеры', idea.camera], ['04', 'Черновой сюжет', idea.scene]
-    ].map(([n, title, body]) => `<article class="scene-card"><span>${n}</span><h3>${title}</h3><p>${body}</p></article>`).join('');
+      ['00', 'Полное описание ролика', idea.full, 'scene-card--full'],
+      ['01', 'Первый кадр (START)', idea.start, ''],
+      ['02', 'Последний кадр (END)', idea.end, ''],
+      ['03', 'Движение камеры', idea.camera, ''],
+      ['04', 'Черновой сюжет', idea.scene, '']
+    ].map(([n, title, body, className]) => `<article class="scene-card ${className}"><span>${n}</span><h3>${title}</h3><p>${body}</p><button type="button" class="scene-copy-button">Скопировать текст</button></article>`).join('');
   }
 
   function renderGallery(container, entries, kind) {
@@ -103,7 +124,7 @@
   function generatePrompt() {
     const car = DATA.cars[state.car];
     const location = DATA.locations[state.location];
-    const idea = DATA.ideas[state.idea];
+    const idea = buildScenario();
     return `Используй загруженные изображения первого и последнего кадров как фиксированные начальную и конечную точки одного непрерывного кинематографичного автомобильного ролика.
 
 ФОРМАТ
@@ -138,7 +159,7 @@ ${idea.camera}
   function renderPrompt() {
     const car = DATA.cars[state.car];
     const location = DATA.locations[state.location];
-    const idea = DATA.ideas[state.idea];
+    const idea = buildScenario();
     const video = DATA.videos[state.video];
     elements.selectionSummary.innerHTML = `<span>${car.name}</span><b>+</b><span>${location.name}</span><b>+</b><span>${idea.title}</span><b>+</b><span>${video.name}</span>`;
     elements.prompt.value = generatePrompt();
@@ -185,31 +206,35 @@ ${idea.camera}
 
   function openLibrary(type) {
     const configs = {
-      cars: { title: 'Все автомобили', items: DATA.cars, image: item => carImage(item, 1), meta: item => `${item.meta} · ${item.count} фото` },
-      locations: { title: 'Все локации', items: DATA.locations, image: item => locationImage(item, 1), meta: item => `${item.meta} · ${item.count} фото` },
-      videos: { title: 'Все видеореференсы Porsche', items: DATA.videos, video: item => videoPath(item), meta: item => item.meta }
+      cars: { title: 'Все автомобили', items: DATA.cars, image: item => carImage(item, 1), meta: item => `${item.meta} · ${item.count} фото`, download: item => carZip(item), downloadLabel: item => `Скачать весь пакет · ${item.count} фото · ZIP` },
+      locations: { title: 'Все локации', items: DATA.locations, image: item => locationImage(item, 1), meta: item => `${item.meta} · ${item.count} фото`, download: item => locationZip(item), downloadLabel: item => `Скачать весь пакет · ${item.count} фото · ZIP` },
+      videos: { title: 'Все видеореференсы Porsche', items: DATA.videos, video: item => videoPath(item), meta: item => item.meta, download: item => videoPath(item), downloadLabel: () => 'Скачать видеореференс · MP4' }
     };
     const config = configs[type];
     elements.libraryTitle.textContent = config.title;
     elements.libraryGrid.innerHTML = config.items.map((item, index) => `
-      <button class="library-card" data-library-type="${type}" data-library-index="${index}">
-        ${config.video ? `<video src="${config.video(item)}" muted preload="metadata"></video>` : `<img src="${config.image(item)}" alt="${item.name}" loading="lazy" />`}
-        <span><small>${item.id}</small><strong>${item.name}</strong><em>${config.meta(item)}</em></span>
-      </button>`).join('');
+      <article class="library-card" data-library-type="${type}" data-library-index="${index}">
+        <button type="button" class="library-card-select">
+          ${config.video ? `<video src="${config.video(item)}" muted preload="metadata"></video>` : `<img src="${config.image(item)}" alt="${item.name}" loading="lazy" />`}
+          <span><small>${item.id}</small><strong>${item.name}</strong><em>${config.meta(item)}</em></span>
+        </button>
+        <a class="library-card-download" data-library-download href="${config.download(item)}" download>${config.downloadLabel(item)}</a>
+      </article>`).join('');
     elements.library.showModal();
   }
 
   populateSelect(elements.carSelect, DATA.cars); populateSelect(elements.locationSelect, DATA.locations); populateSelect(elements.videoSelect, DATA.videos);
-  readHash(); renderAll();
+  readHash(); state.idea = state.location; renderAll();
 
   elements.draftList.addEventListener('click', (e) => { const button = e.target.closest('[data-idea]'); if (button) selectIdea(Number(button.dataset.idea)); });
   elements.carSelect.addEventListener('change', (e) => { state.car = Number(e.target.value); renderAll(); });
-  elements.locationSelect.addEventListener('change', (e) => { state.location = Number(e.target.value); renderAll(); });
+  elements.locationSelect.addEventListener('change', (e) => { state.location = Number(e.target.value); state.idea = state.location; renderAll(); });
   elements.videoSelect.addEventListener('change', (e) => { state.video = Number(e.target.value); renderAll(); });
   elements.videoStrip.addEventListener('click', (e) => { const button = e.target.closest('[data-video]'); if (button) { state.video = Number(button.dataset.video); renderAll(); } });
   $('#reset-combination').addEventListener('click', () => selectIdea(state.idea, true));
   document.addEventListener('click', (e) => { const trigger = e.target.closest('[data-library], [data-open-library]'); if (trigger) openLibrary(trigger.dataset.library || trigger.dataset.openLibrary); });
-  elements.libraryGrid.addEventListener('click', (e) => { const card = e.target.closest('[data-library-index]'); if (!card) return; const index = Number(card.dataset.libraryIndex); if (card.dataset.libraryType === 'cars') state.car = index; if (card.dataset.libraryType === 'locations') state.location = index; if (card.dataset.libraryType === 'videos') state.video = index; elements.library.close(); renderAll(); });
+  elements.libraryGrid.addEventListener('click', (e) => { if (e.target.closest('[data-library-download]')) return; const card = e.target.closest('[data-library-index]'); if (!card) return; const index = Number(card.dataset.libraryIndex); if (card.dataset.libraryType === 'cars') state.car = index; if (card.dataset.libraryType === 'locations') { state.location = index; state.idea = index; } if (card.dataset.libraryType === 'videos') state.video = index; elements.library.close(); renderAll(); });
+  elements.sceneGrid.addEventListener('click', (e) => { const button = e.target.closest('.scene-copy-button'); if (!button) return; const text = button.closest('.scene-card').querySelector('p').textContent; copyText(text, 'Текст блока скопирован'); });
   $('#library-close').addEventListener('click', () => elements.library.close());
   $('#lightbox-close').addEventListener('click', () => elements.lightbox.close());
   $('#lightbox-prev').addEventListener('click', () => moveLightbox(-1)); $('#lightbox-next').addEventListener('click', () => moveLightbox(1));
