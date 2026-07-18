@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RentCar24 creative workspace: автомобили, локации, Porsche-референсы и черновые идеи для видеогенерации." />
+    <title>RC24 — Творческая видеомастерская</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="data.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <button class="icon-button mobile-only" id="sidebar-toggle" aria-label="Открыть список идей">☰</button>
+        <a class="brand" href="#" aria-label="Творческая видеомастерская RC24">
+          <span class="brand-mark">RC24</span>
+          <span class="brand-copy"><strong>Творческая видеомастерская</strong><small>12 автомобилей · 12 локаций · 7 видеореференсов</small></span>
+        </a>
+        <nav class="library-nav" aria-label="Библиотеки материалов">
+          <button data-library="cars">Автомобили <span>12</span></button>
+          <button data-library="locations">Локации <span>12</span></button>
+          <button data-library="videos">Porsche-референсы <span>7</span></button>
+        </nav>
+      </header>
+
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-heading">
+          <div><span class="eyebrow">Необязательные отправные точки</span><h1>Черновые идеи</h1></div>
+          <button class="icon-button mobile-only" id="sidebar-close" aria-label="Закрыть список">×</button>
+        </div>
+        <p class="sidebar-note">Это не жёсткие задания. Любую идею можно соединить с любой машиной и локацией.</p>
+        <div class="draft-list" id="draft-list"></div>
+      </aside>
+
+      <main class="workspace" id="workspace">
+        <section class="workspace-toolbar" aria-label="Текущая творческая комбинация">
+          <div class="select-field"><label for="car-select">Автомобиль</label><select id="car-select"></select></div>
+          <span class="toolbar-plus">+</span>
+          <div class="select-field"><label for="location-select">Локация</label><select id="location-select"></select></div>
+          <span class="toolbar-plus">+</span>
+          <div class="select-field"><label for="video-select">Видеореференс</label><select id="video-select"></select></div>
+          <button class="ghost-button" id="reset-combination">Вернуть сочетание идеи</button>
+        </section>
+
+        <div class="workspace-content">
+          <section class="idea-hero" id="idea-hero"></section>
+
+          <section class="section-block">
+            <div class="section-heading"><div><span class="eyebrow">Черновое направление</span><h2>Структура сцены</h2></div><span class="section-hint">Можно использовать, изменить или отбросить</span></div>
+            <div class="scene-grid" id="scene-grid"></div>
+          </section>
+
+          <section class="section-block asset-section">
+            <div class="section-heading"><div><span class="eyebrow">Материалы автомобиля</span><h2 id="car-gallery-title">Референсы автомобиля</h2></div><a class="download-link package-download" id="download-car" download>Скачать весь пакет автомобиля</a></div>
+            <div class="reference-grid car-grid" id="car-gallery"></div>
+          </section>
+
+          <section class="section-block asset-section">
+            <div class="section-heading"><div><span class="eyebrow">Материалы локации</span><h2 id="location-gallery-title">Референсы локации</h2></div><a class="download-link package-download" id="download-location" download>Скачать весь пакет локации</a></div>
+            <div class="reference-grid location-grid" id="location-gallery"></div>
+          </section>
+
+          <section class="section-block video-section">
+            <div class="section-heading"><div><span class="eyebrow">Камера · построение кадра · ритм монтажа</span><h2>Porsche-видеореференсы</h2></div><span class="section-hint">Описание приёмов без привязки к конкретному сценарию</span></div>
+            <div class="video-workbench" id="video-workbench"></div>
+            <div class="video-strip" id="video-strip"></div>
+          </section>
+        </div>
+      </main>
+
+      <aside class="prompt-dock" id="prompt-dock">
+        <div class="prompt-heading"><div><span class="eyebrow">Редактируемый помощник</span><h2>Промт для видео</h2></div><span class="live-dot">ГОТОВ</span></div>
+        <div class="selection-summary" id="selection-summary"></div>
+        <p class="prompt-note">Промт автоматически собирается из выбранных материалов и черновой идеи. Его можно свободно редактировать, копировать целиком или использовать частично.</p>
+        <textarea id="prompt-text" spellcheck="false" aria-label="Редактируемый промт для видео"></textarea>
+        <div class="prompt-actions">
+          <button class="primary-button" id="copy-prompt">Скопировать промт</button>
+          <button class="secondary-button" id="copy-all">Скопировать промт и ограничения</button>
+        </div>
+        <details class="constraints-panel" open>
+          <summary>Ограничения и негативный промт</summary>
+          <textarea id="negative-text" spellcheck="false" aria-label="Редактируемые ограничения для генерации"></textarea>
+          <button class="text-button" id="copy-negative">Скопировать ограничения</button>
+        </details>
+        <div class="specs">
+          <span>8 секунд</span><span>25 кадров/с</span><span>Исходник 4K</span><span>Формат 16:9</span><span>Безопасная зона 5:4</span><span>Без звука</span>
+        </div>
+        <div class="dock-downloads">
+          <span class="eyebrow">Скачать выбранные материалы</span>
+          <a id="dock-car-download" download>Пакет автомобиля</a>
+          <a id="dock-location-download" download>Пакет локации</a>
+          <a id="dock-video-download" download>Выбранный Porsche-референс</a>
+        </div>
+      </aside>
+    </div>
+
+    <dialog class="library-dialog" id="library-dialog">
+      <div class="dialog-bar"><div><span class="eyebrow">Библиотека материалов</span><h2 id="library-title">Материалы</h2></div><button class="icon-button" id="library-close" aria-label="Закрыть библиотеку">×</button></div>
+      <div class="library-grid" id="library-grid"></div>
+    </dialog>
+
+    <dialog class="lightbox" id="lightbox">
+      <button class="lightbox-close" id="lightbox-close" aria-label="Закрыть изображение">×</button>
+      <button class="lightbox-arrow lightbox-prev" id="lightbox-prev" aria-label="Предыдущее изображение">←</button>
+      <figure><img id="lightbox-image" alt="" /><figcaption><span id="lightbox-caption"></span><a id="lightbox-download" download>Скачать это фото в JPG</a></figcaption></figure>
+      <button class="lightbox-arrow lightbox-next" id="lightbox-next" aria-label="Следующее изображение">→</button>
+    </dialog>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
